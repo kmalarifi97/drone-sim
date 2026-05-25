@@ -1,0 +1,21 @@
+# Candidate eval clones (external repos with their own git history)
+candidates/
+
+# Node
+node_modules/
+dist/
+*.log
+npm-debug.log*
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# Editors
+.vscode/
+.idea/
+.DS_Store
+
+# Misc
+*.tsbuildinfo
