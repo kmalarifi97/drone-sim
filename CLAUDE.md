@@ -5,7 +5,7 @@ Educational drone-building app. Students pick real parts → assemble a drone �
 ## Current state (as of 2026-05-25)
 
 - **Prompt 1: ✅ Done.** Evaluated three candidate flight sims. None had real drone physics — all were arcade flyers with magic-number tuning constants. See *Eval summary* below.
-- **Prompt 2: 🚧 Scaffolded but UNVERIFIED.** `web/` contains Vite+TS+R3F+drei+Zustand scaffold + physics module + zustand store + three test configs. `npm install` / `npx tsc --noEmit` / `npm run dev` have **never been run** in this repo. **First action on the next session: verify it actually builds and the three test configs produce visibly different flight behavior. If broken, fix before continuing.**
+- **Prompt 2: ✅ Done.** `web/` builds clean (`tsc --noEmit` + `npm run build`), dev server serves at http://127.0.0.1:5173/. Flight scene with throttle slider, Small/Medium/Large config picker, telemetry overlay (altitude, vertical velocity, battery %, TWR, hover throttle %). Switching configs changes hover throttle from 31% (Small) → 36% (Medium) → 52% (Large), and acceleration scales accordingly.
 - **Prompts 3–5: ⬜ Pending.** Briefs below.
 
 ## Architectural decisions
@@ -65,8 +65,8 @@ npm run dev   # http://localhost:5173
 ### Prompt 1 — Evaluate candidates ✅ done
 Clone droneWorld / drone-simulator / quadwebgl, run each, produce comparison summary. Outcome: path B chosen (no fork). See *Eval summary* above.
 
-### Prompt 2 — DroneConfig + physics 🚧 scaffolded
-Build a Vite+TS+R3F+Zustand app at `web/`. Define `DroneConfig`. Write `stepPhysics(state, config, controls, dt)` that integrates gravity + thrust + quadratic drag + battery drain. Minimal flight test page with throttle slider, config picker (Small/Medium/Large presets), telemetry readout. **Done when:** three preset configs produce visibly different flight behavior.
+### Prompt 2 — DroneConfig + physics ✅ done
+Vite+TS+R3F+Zustand app at `web/`. `DroneConfig` defined. `stepPhysics(state, config, controls, dt)` integrates gravity + thrust + quadratic drag + battery drain (with ground clamp at y=0). Flight test page has throttle slider, Small/Medium/Large config picker, telemetry (altitude, vertical velocity, battery %, TWR, hover throttle %).
 
 ### Prompt 3 — Parts assembly playground ⬜
 React UI on top of Prompt 2. `parts.json` with real specs from T-Motor, Lumenier, Tattu (min: 3 frames, 4 motors, 4 props, 3 ESCs, 4 batteries). Three-panel layout: catalog (left) / 3D preview (center) / live stats (right). Live stats: total weight, max thrust, TWR, hover throttle %, est. flight time, CoG. Non-blocking validation warnings (e.g. ESC current < motor max draw). Export button → produces a `DroneConfig`. **Done when:** can build a drone, see stats update live, export config.

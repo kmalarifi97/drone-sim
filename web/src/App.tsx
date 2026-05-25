@@ -1,122 +1,101 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { Canvas, useFrame } from '@react-three/fiber';
+import { OrbitControls, Grid } from '@react-three/drei';
+import { useStore } from './state/store';
+import { presets, type PresetName } from './configs/testConfigs';
 
-function App() {
-  const [count, setCount] = useState(0)
-
+function Drone() {
+  const position = useStore((s) => s.state.position);
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+    <mesh position={position}>
+      <boxGeometry args={[0.3, 0.1, 0.3]} />
+      <meshStandardMaterial color="#ff8a3d" />
+    </mesh>
+  );
 }
 
-export default App
+function PhysicsLoop() {
+  const step = useStore((s) => s.stepSimulation);
+  useFrame((_, delta) => step(delta));
+  return null;
+}
+
+function Scene() {
+  return (
+    <>
+      <ambientLight intensity={0.55} />
+      <directionalLight position={[5, 10, 5]} intensity={1} castShadow />
+      <Grid args={[30, 30]} cellColor="#555" sectionColor="#888" infiniteGrid />
+      <axesHelper args={[2]} />
+      <Drone />
+      <OrbitControls target={[0, 1, 0]} />
+      <PhysicsLoop />
+    </>
+  );
+}
+
+function Overlay() {
+  const config = useStore((s) => s.config);
+  const state = useStore((s) => s.state);
+  const throttle = useStore((s) => s.controls.throttle);
+  const setThrottle = useStore((s) => s.setThrottle);
+  const setConfig = useStore((s) => s.setConfig);
+  const reset = useStore((s) => s.reset);
+
+  const twr =
+    (config.motorCount * config.motorMaxThrust) /
+    (config.totalMass + config.payloadMass);
+  const altitude = state.position[1];
+  const vy = state.velocity[1];
+  const batteryPct = (state.batteryRemainingMah / config.batteryCapacityMah) * 100;
+  const hoverThrottlePct = (1 / twr) * 100;
+
+  return (
+    <div className="overlay">
+      <div className="panel">
+        <div className="label">Config</div>
+        <div className="row">
+          {(['Small', 'Medium', 'Large'] as PresetName[]).map((name) => (
+            <button key={name} onClick={() => setConfig(presets[name])}>
+              {name}
+            </button>
+          ))}
+          <button onClick={reset}>Reset</button>
+        </div>
+      </div>
+
+      <div className="panel">
+        <div className="label">Throttle: {throttle.toFixed(2)}</div>
+        <input
+          type="range"
+          min={0}
+          max={1}
+          step={0.01}
+          value={throttle}
+          onChange={(e) => setThrottle(+e.target.value)}
+        />
+      </div>
+
+      <div className="panel">
+        <div>Altitude: {altitude.toFixed(2)} m</div>
+        <div>V↑: {vy.toFixed(2)} m/s</div>
+        <div>
+          Battery: {state.batteryRemainingMah.toFixed(0)} / {config.batteryCapacityMah} mAh ({batteryPct.toFixed(1)}%)
+        </div>
+        <div>TWR: {twr.toFixed(2)}</div>
+        <div>Hover throttle: {hoverThrottlePct.toFixed(1)}%</div>
+      </div>
+    </div>
+  );
+}
+
+export default function App() {
+  return (
+    <div className="root-wrap">
+      <Canvas camera={{ position: [3, 3, 5], fov: 50 }} shadows>
+        <color attach="background" args={['#1a1d24']} />
+        <Scene />
+      </Canvas>
+      <Overlay />
+    </div>
+  );
+}
