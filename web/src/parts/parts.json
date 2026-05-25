@@ -1,0 +1,197 @@
+{
+  "frames": [
+    {
+      "id": "lumenier_qav_s_5",
+      "category": "frame",
+      "manufacturer": "Lumenier",
+      "model": "QAV-S 5\"",
+      "mass_g": 110,
+      "motorMountCount": 4,
+      "wheelbase_mm": 220
+    },
+    {
+      "id": "lumenier_qav_pro_7",
+      "category": "frame",
+      "manufacturer": "Lumenier",
+      "model": "QAV-PRO 7\"",
+      "mass_g": 160,
+      "motorMountCount": 4,
+      "wheelbase_mm": 280
+    },
+    {
+      "id": "lumenier_qav_cine_3",
+      "category": "frame",
+      "manufacturer": "Lumenier",
+      "model": "QAV-CINE 3\"",
+      "mass_g": 95,
+      "motorMountCount": 4,
+      "wheelbase_mm": 150
+    }
+  ],
+  "motors": [
+    {
+      "id": "tmotor_f40_pro_iv_2400",
+      "category": "motor",
+      "manufacturer": "T-Motor",
+      "model": "F40 PRO IV 2400KV",
+      "mass_g": 31,
+      "kv": 2400,
+      "maxThrust_g": 1320,
+      "maxCurrent_a": 27,
+      "voltage_min": 11.1,
+      "voltage_max": 16.8
+    },
+    {
+      "id": "tmotor_f60_pro_iv_1950",
+      "category": "motor",
+      "manufacturer": "T-Motor",
+      "model": "F60 PRO IV 1950KV",
+      "mass_g": 33,
+      "kv": 1950,
+      "maxThrust_g": 1700,
+      "maxCurrent_a": 36,
+      "voltage_min": 14.8,
+      "voltage_max": 22.2
+    },
+    {
+      "id": "lumenier_zip_2207_2400",
+      "category": "motor",
+      "manufacturer": "Lumenier",
+      "model": "ZIP 2207 2400KV",
+      "mass_g": 30,
+      "kv": 2400,
+      "maxThrust_g": 1300,
+      "maxCurrent_a": 28,
+      "voltage_min": 11.1,
+      "voltage_max": 16.8
+    },
+    {
+      "id": "tmotor_f1303_5000",
+      "category": "motor",
+      "manufacturer": "T-Motor",
+      "model": "F1303 5000KV",
+      "mass_g": 7,
+      "kv": 5000,
+      "maxThrust_g": 240,
+      "maxCurrent_a": 14,
+      "voltage_min": 7.4,
+      "voltage_max": 16.8
+    }
+  ],
+  "propellers": [
+    {
+      "id": "hqprop_5x43x3_v1s",
+      "category": "propeller",
+      "manufacturer": "HQProp",
+      "model": "5x4.3x3 V1S",
+      "mass_g": 4.5,
+      "diameter_in": 5,
+      "pitch_in": 4.3,
+      "blades": 3
+    },
+    {
+      "id": "gemfan_hurricane_51466",
+      "category": "propeller",
+      "manufacturer": "Gemfan",
+      "model": "Hurricane 51466",
+      "mass_g": 4.0,
+      "diameter_in": 5,
+      "pitch_in": 4.6,
+      "blades": 3
+    },
+    {
+      "id": "hqprop_7x35x3",
+      "category": "propeller",
+      "manufacturer": "HQProp",
+      "model": "7x3.5x3",
+      "mass_g": 7.5,
+      "diameter_in": 7,
+      "pitch_in": 3.5,
+      "blades": 3
+    },
+    {
+      "id": "gemfan_3018_3",
+      "category": "propeller",
+      "manufacturer": "Gemfan",
+      "model": "3018-3",
+      "mass_g": 1.6,
+      "diameter_in": 3,
+      "pitch_in": 1.8,
+      "blades": 3
+    }
+  ],
+  "escs": [
+    {
+      "id": "tmotor_f45a_6s",
+      "category": "esc",
+      "manufacturer": "T-Motor",
+      "model": "F45A 6S (single)",
+      "mass_g": 7,
+      "is4in1": false,
+      "currentRating_a": 45,
+      "voltage_max": 22.2
+    },
+    {
+      "id": "tmotor_f30a",
+      "category": "esc",
+      "manufacturer": "T-Motor",
+      "model": "F30A (single)",
+      "mass_g": 5,
+      "is4in1": false,
+      "currentRating_a": 30,
+      "voltage_max": 16.8
+    },
+    {
+      "id": "lumenier_blheli32_50a_4in1",
+      "category": "esc",
+      "manufacturer": "Lumenier",
+      "model": "BLHeli32 50A 4-in-1",
+      "mass_g": 18,
+      "is4in1": true,
+      "currentRating_a": 50,
+      "voltage_max": 25.2
+    }
+  ],
+  "batteries": [
+    {
+      "id": "tattu_rline_4s_1300",
+      "category": "battery",
+      "manufacturer": "Tattu",
+      "model": "R-Line 4S 1300mAh 95C",
+      "mass_g": 165,
+      "capacity_mah": 1300,
+      "voltage": 14.8,
+      "cells": 4
+    },
+    {
+      "id": "tattu_rline_6s_1300",
+      "category": "battery",
+      "manufacturer": "Tattu",
+      "model": "R-Line 6S 1300mAh 120C",
+      "mass_g": 195,
+      "capacity_mah": 1300,
+      "voltage": 22.2,
+      "cells": 6
+    },
+    {
+      "id": "tattu_rline_4s_1500",
+      "category": "battery",
+      "manufacturer": "Tattu",
+      "model": "R-Line 4S 1500mAh 130C",
+      "mass_g": 195,
+      "capacity_mah": 1500,
+      "voltage": 14.8,
+      "cells": 4
+    },
+    {
+      "id": "tattu_3s_850",
+      "category": "battery",
+      "manufacturer": "Tattu",
+      "model": "3S 850mAh 75C",
+      "mass_g": 95,
+      "capacity_mah": 850,
+      "voltage": 11.1,
+      "cells": 3
+    }
+  ]
+}

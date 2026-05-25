@@ -6,7 +6,8 @@ Educational drone-building app. Students pick real parts → assemble a drone �
 
 - **Prompt 1: ✅ Done.** Evaluated three candidate flight sims. None had real drone physics — all were arcade flyers with magic-number tuning constants. See *Eval summary* below.
 - **Prompt 2: ✅ Done.** `web/` builds clean (`tsc --noEmit` + `npm run build`), dev server serves at http://127.0.0.1:5173/. Flight scene with throttle slider, Small/Medium/Large config picker, telemetry overlay (altitude, vertical velocity, battery %, TWR, hover throttle %). Switching configs changes hover throttle from 31% (Small) → 36% (Medium) → 52% (Large), and acceleration scales accordingly.
-- **Prompts 3–5: ⬜ Pending.** Briefs below.
+- **Prompt 3: ✅ Done.** Parts assembly playground at `src/assembly/`. 18 real parts (3 frames, 4 motors, 4 props, 3 ESCs, 4 batteries) in `src/parts/parts.json`. Three-panel UI: catalog tabs / 3D drone preview / live stats + validation + export. `buildToConfig()` produces `DroneConfig`; `validateBuild()` flags ESC overcurrent, voltage min/max, can't-hover, low TWR, prop-size mismatch. View toggle assembly↔flight via store. Smoke test: QAV-S 5" + F40 PRO IV 2400KV + HQProp 5x4.3x3 + BLHeli32 50A 4-in-1 + Tattu 4S 1300 + 0g payload → totalMass=460g, TWR=11.48.
+- **Prompts 4–5: ⬜ Pending.** Briefs below.
 
 ## Architectural decisions
 
@@ -68,8 +69,8 @@ Clone droneWorld / drone-simulator / quadwebgl, run each, produce comparison sum
 ### Prompt 2 — DroneConfig + physics ✅ done
 Vite+TS+R3F+Zustand app at `web/`. `DroneConfig` defined. `stepPhysics(state, config, controls, dt)` integrates gravity + thrust + quadratic drag + battery drain (with ground clamp at y=0). Flight test page has throttle slider, Small/Medium/Large config picker, telemetry (altitude, vertical velocity, battery %, TWR, hover throttle %).
 
-### Prompt 3 — Parts assembly playground ⬜
-React UI on top of Prompt 2. `parts.json` with real specs from T-Motor, Lumenier, Tattu (min: 3 frames, 4 motors, 4 props, 3 ESCs, 4 batteries). Three-panel layout: catalog (left) / 3D preview (center) / live stats (right). Live stats: total weight, max thrust, TWR, hover throttle %, est. flight time, CoG. Non-blocking validation warnings (e.g. ESC current < motor max draw). Export button → produces a `DroneConfig`. **Done when:** can build a drone, see stats update live, export config.
+### Prompt 3 — Parts assembly playground ✅ done
+React UI on top of Prompt 2. `parts.json` with real specs (T-Motor / Lumenier / Tattu, 18 parts). Three-panel layout: catalog tabs (left) / 3D drone preview (center) / live stats + validation + export (right). `buildToConfig()` → `DroneConfig`; `validateBuild()` returns non-blocking warn/error list. "Fly Mission" button calls `flyBuild()` → sets config and switches `view` to `'flight'`.
 
 ### Prompt 4 — Delivery mission + autopilot ⬜
 Render mission in flight scene: warehouse `[0,0,0]`, customer `[2000,0,0]`, building obstacle `{position:[1000,0,0], height:90, width:40}`, wind `{direction:[-1,0,0], speed_ms:4}`, payload 200g, max 300s. PID waypoint-following autopilot (student doesn't fly manually). "Fly mission" button launches the sim with exported config + mission. Surface outcome (`success` or `crashed`) + telemetry (peak altitude, final position, battery state, peak current, peak drift). **Done when:** build → click fly → watch autopilot → see outcome with telemetry.
@@ -105,11 +106,14 @@ Log every part selection, flight attempt, and diagnosis. Show student a human-re
 
 ## Repository layout
 
-- `web/` — React+TS+Vite+R3F app (assembly playground + flight scene, eventually)
-  - `src/physics/drone.ts` — physics step function
-  - `src/state/store.ts` — Zustand store
-  - `src/configs/testConfigs.ts` — Small/Medium/Large `DroneConfig` presets
-  - `src/App.tsx` — minimal flight test UI (Prompt 2)
+- `web/` — React+TS+Vite+R3F app
+  - `src/App.tsx` — thin view router (assembly ↔ flight)
+  - `src/physics/drone.ts` — `DroneConfig` + `stepPhysics()`
+  - `src/state/store.ts` — Zustand store (view, build, config, state, controls)
+  - `src/configs/testConfigs.ts` — Small/Medium/Large `DroneConfig` presets (used by FlightView)
+  - `src/parts/parts.json` + `src/parts/types.ts` + `src/parts/catalog.ts` — parts data
+  - `src/assembly/` — `AssemblyView`, `buildToConfig`, `validate`, `Build` type
+  - `src/flight/FlightView.tsx` — flight scene + telemetry overlay (Prompt 2 UI)
 - `candidates/` — vendored eval source (read-only reference)
 - `server/` — does not exist yet; appears in Prompt 5 alongside `docker-compose.yml`
 
