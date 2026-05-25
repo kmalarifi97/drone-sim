@@ -24,6 +24,9 @@ import {
   emptyPIDState,
   type PIDState,
 } from "../mission/autopilot";
+import { getEsc } from "../parts/catalog";
+import { logEvent, completeFlight, type Diagnosis } from "../api/client";
+import { STUDENT_ID, SESSION_ID, attemptCounter } from "../api/session";
 
 function freshState(config: DroneConfig): DroneState {
   return {
@@ -58,6 +61,7 @@ export type MissionRuntime = {
   elapsedSeconds: number;
   pid: PIDState;
   telemetry: MissionTelemetry;
+  diagnosis: Diagnosis | null;
 };
 
 function freshMission(config: DroneConfig): MissionRuntime {
@@ -75,6 +79,7 @@ function freshMission(config: DroneConfig): MissionRuntime {
       finalPosition: null,
       batteryRemainingMah: config.batteryCapacityMah,
     },
+    diagnosis: null,
   };
 }
 
@@ -236,6 +241,36 @@ export const useStore = create<Store>((set, get) => ({
         },
       },
     });
+
+    // Detect transition from in_progress -> terminal: log completion to backend.
+    if (status !== "in_progress" && mission.status === "in_progress") {
+      const esc = getEsc(get().build.escId);
+      const escRating = esc?.currentRating_a ?? 0;
+      const outcome = status === "success" ? "success" : "crashed";
+      completeFlight({
+        student_id: STUDENT_ID,
+        session_id: SESSION_ID,
+        attempt_number: attemptCounter.current(),
+        config: { ...config },
+        telemetry: {
+          outcome,
+          crash_reason_from_sim: crashReason,
+          peak_altitude_m: peakAltitude,
+          peak_current_a: peakCurrentA,
+          peak_drift_m: peakDrift,
+          final_position: newState.position,
+          battery_remaining_mah: newState.batteryRemainingMah,
+          elapsed_seconds: elapsedSeconds,
+          collided_with_obstacle: crashReason === "collision_building",
+          esc_current_rating_a: escRating,
+        },
+      })
+        .then((res) => {
+          const cur = get().mission;
+          set({ mission: { ...cur, diagnosis: res.diagnosis } });
+        })
+        .catch((e) => console.warn("completeFlight failed", e));
+    }
   },
   reset: () => set({ state: freshState(get().config) }),
   setView: (view) => set({ view }),
@@ -251,6 +286,14 @@ export const useStore = create<Store>((set, get) => ({
       } as const
     )[category];
     set({ build: { ...build, [key]: id } });
+    // Non-blocking event log; never break UX on API failure.
+    logEvent({
+      student_id: STUDENT_ID,
+      session_id: SESSION_ID,
+      attempt_number: Math.max(1, attemptCounter.current()),
+      event_type: "part_selected",
+      payload: { category, part_id: id },
+    }).catch((e) => console.warn("logEvent(part_selected) failed", e));
   },
   setPayload: (mass) => {
     const clamped = Math.max(0, Math.min(2000, Number.isFinite(mass) ? mass : 0));
@@ -276,6 +319,7 @@ export const useStore = create<Store>((set, get) => ({
         finalPosition: null,
         batteryRemainingMah: config.batteryCapacityMah,
       },
+      diagnosis: null,
     };
     set({
       config,
@@ -284,6 +328,14 @@ export const useStore = create<Store>((set, get) => ({
       mission,
       view: "flight",
     });
+    const attempt = attemptCounter.nextAttempt();
+    logEvent({
+      student_id: STUDENT_ID,
+      session_id: SESSION_ID,
+      attempt_number: attempt,
+      event_type: "flight_started",
+      payload: { ...config },
+    }).catch((e) => console.warn("logEvent(flight_started) failed", e));
   },
   cancelMission: () => {
     const config = get().config;

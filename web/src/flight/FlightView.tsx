@@ -240,6 +240,19 @@ function MissionOverlay() {
               <div>Peak drift: {mission.telemetry.peakDrift.toFixed(1)} m</div>
               <div>Elapsed: {mission.elapsedSeconds.toFixed(1)} s</div>
             </div>
+            {mission.diagnosis ? (
+              <div className="result-diagnosis">
+                <div className="result-diagnosis-header">
+                  Diagnosis: {mission.diagnosis.cause}
+                  {mission.diagnosis.concept_tag
+                    ? ` · ${mission.diagnosis.concept_tag}`
+                    : ''}
+                </div>
+                <p className="result-diagnosis-text">{mission.diagnosis.explanation}</p>
+              </div>
+            ) : (
+              <div className="result-diagnosis-pending">Awaiting diagnosis...</div>
+            )}
             <button onClick={cancelMission}>Back to assembly</button>
           </div>
         </div>

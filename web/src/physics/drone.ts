@@ -10,6 +10,7 @@ export type DroneConfig = {
   dragCoefficient: number;   // dimensionless Cd for whole airframe
   batteryCapacityMah: number;
   batteryVoltage: number;    // nominal V
+  batteryCells: number;      // LiPo S-count (e.g. 4 for 4S)
   payloadMass: number;       // grams
 };
 

@@ -39,6 +39,7 @@ export function buildToConfig(build: Build): DroneConfig | null {
     dragCoefficient: 0.6,
     batteryCapacityMah: battery.capacity_mah,
     batteryVoltage: battery.voltage,
+    batteryCells: battery.cells ?? 4,
     payloadMass: build.payloadMass,
   };
 }

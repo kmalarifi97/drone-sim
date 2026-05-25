@@ -8,6 +8,7 @@ export const smallConfig: DroneConfig = {
   dragCoefficient: 0.5,
   batteryCapacityMah: 850,
   batteryVoltage: 11.1,
+  batteryCells: 3,
   payloadMass: 0,
 };
 
@@ -19,6 +20,7 @@ export const mediumConfig: DroneConfig = {
   dragCoefficient: 0.6,
   batteryCapacityMah: 1500,
   batteryVoltage: 14.8,
+  batteryCells: 4,
   payloadMass: 200,
 };
 
@@ -30,6 +32,7 @@ export const largeConfig: DroneConfig = {
   dragCoefficient: 0.8,
   batteryCapacityMah: 5000,
   batteryVoltage: 22.2,
+  batteryCells: 6,
   payloadMass: 500,
 };
 

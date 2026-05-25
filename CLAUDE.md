@@ -8,7 +8,7 @@ Educational drone-building app. Students pick real parts → assemble a drone �
 - **Prompt 2: ✅ Done.** `web/` builds clean (`tsc --noEmit` + `npm run build`), dev server serves at http://127.0.0.1:5173/. Flight scene with throttle slider, Small/Medium/Large config picker, telemetry overlay (altitude, vertical velocity, battery %, TWR, hover throttle %). Switching configs changes hover throttle from 31% (Small) → 36% (Medium) → 52% (Large), and acceleration scales accordingly.
 - **Prompt 3: ✅ Done.** Parts assembly playground at `src/assembly/`. 18 real parts (3 frames, 4 motors, 4 props, 3 ESCs, 4 batteries) in `src/parts/parts.json`. Three-panel UI: catalog tabs / 3D drone preview / live stats + validation + export. `buildToConfig()` produces `DroneConfig`; `validateBuild()` flags ESC overcurrent, voltage min/max, can't-hover, low TWR, prop-size mismatch. View toggle assembly↔flight via store. Smoke test: QAV-S 5" + F40 PRO IV 2400KV + HQProp 5x4.3x3 + BLHeli32 50A 4-in-1 + Tattu 4S 1300 + 0g payload → totalMass=460g, TWR=11.48.
 - **Prompt 4: ✅ Done.** Delivery mission spec + 3-waypoint plan (climb → translate → descend over 2km, around 90m building at x=1000), PID waypoint follower with gravity feed-forward + per-axis accel clamp (`src/mission/autopilot.ts`), wind via relative-velocity drag, building collision AABB, mission state machine (`idle | in_progress | success | crashed`), result modal with telemetry (peak altitude, peak current, peak drift, final position, battery remaining). Smoke test: medium drone climbed to 101m in 20s, traversed to x=986m in 30s, completes full path ~80s.
-- **Prompt 5: ⬜ Pending.** Brief below.
+- **Prompt 5: ✅ Done.** FastAPI + SQLAlchemy 2 + psycopg 3 + Alembic + Postgres 17 in Docker Compose. `student_events` table with the spec schema. 7-rule diagnosis engine on `/flights/complete`. Web client posts `part_selected`, `flight_started`, and `flight_ended`+`crash_diagnosed` events (non-blocking, never breaks the sim). Result modal shows diagnosis cause + concept tag + explanation. End-to-end verified: TWR<1.5+collided telemetry → `insufficient_climb_rate` (`thrust_to_weight`) row in DB.
 
 ## Architectural decisions
 
@@ -32,7 +32,7 @@ Source is vendored under `candidates/` for reference (their original `.git/` rem
 
 - **Web:** React 18 + TypeScript + Vite, `three` + `@react-three/fiber` + `@react-three/drei`, `zustand`
 - **Backend (Prompt 5):** FastAPI + SQLAlchemy + Alembic, PostgreSQL
-- **Dev:** Native Node 23 / npm 10 for Prompts 2–4. Docker Compose enters in Prompt 5 (Postgres + FastAPI). Vite HMR runs native, not in Docker.
+- **Dev:** Native Node 23 / npm 10 for the web app (Vite HMR runs native — fiddly through Docker). Docker Compose hosts `db` (postgres:17-alpine, port 5432) + `api` (FastAPI on port 8000). The web app talks to `http://localhost:8000` via CORS-allowed fetch.
 
 ### DroneConfig schema (cross-prompt contract — units matter)
 
@@ -55,12 +55,25 @@ This object is what the assembly UI exports and what the flight sim consumes. Do
 
 ```bash
 git clone git@github.com:kmalarifi97/drone-sim.git
-cd drone-sim/web
+cd drone-sim
+
+# Backend (db + api in Docker)
+docker compose up -d --build
+docker compose exec api alembic upgrade head
+curl http://localhost:8000/healthz   # {"status":"ok"}
+
+# Web (native, port 5173)
+cd web
 npm install
-npm run dev   # http://localhost:5173
+npm run dev
+# open http://localhost:5173
 ```
 
-**First action:** verify the unverified Prompt 2 scaffold. If `npx tsc --noEmit` errors or the dev server shows a broken page, fix before moving to Prompt 3.
+Inspect the event log:
+```bash
+docker compose exec db psql -U drone -d drone -c \
+  "SELECT event_type, concept_tag, created_at FROM student_events ORDER BY created_at DESC LIMIT 20;"
+```
 
 ## Build sequence (the 5 prompts)
 
@@ -76,8 +89,8 @@ React UI on top of Prompt 2. `parts.json` with real specs (T-Motor / Lumenier / 
 ### Prompt 4 — Delivery mission + autopilot ✅ done
 Mission at `src/mission/delivery.ts` (warehouse `[0,0,0]`, customer `[2000,0,0]`, 90m×40m building at x=1000, wind 4 m/s blowing -x, 200g payload, 300s limit). PID waypoint follower at `src/mission/autopilot.ts` (Kp=4 Ki=0.5 Kd=6, gravity feed-forward, per-axis accel clamp 8 m/s², uniform-scale thrust clamp). Mission state machine in store (`stepMission`, `cancelMission`, `MissionRuntime` with telemetry). Building collision AABB, battery <5% = crash, 300s = timeout. Result modal in `FlightView`.
 
-### Prompt 5 — Diagnosis + event logging ⬜
-Add `server/` with FastAPI + SQLAlchemy + Alembic + Postgres + Docker Compose. Implement diagnosis ruleset against flight telemetry from Prompt 4:
+### Prompt 5 — Diagnosis + event logging ✅ done
+`server/` runs FastAPI + SQLAlchemy 2 + psycopg 3 + Alembic. `docker-compose.yml` boots Postgres 17 + the API. Diagnosis ruleset on `/flights/complete` (rules evaluated in order, first-match):
 
 | Cause | Detection rule | Concept tag |
 |---|---|---|
@@ -118,7 +131,16 @@ Log every part selection, flight attempt, and diagnosis. Show student a human-re
   - `src/mission/delivery.ts` — delivery mission spec + waypoint planner + building AABB
   - `src/mission/autopilot.ts` — PID waypoint follower (point-mass, gravity feed-forward)
 - `candidates/` — vendored eval source (read-only reference)
-- `server/` — does not exist yet; appears in Prompt 5 alongside `docker-compose.yml`
+- `server/` — FastAPI app
+  - `app/main.py` — FastAPI app with CORS + route registration
+  - `app/db.py`, `app/models.py`, `app/schemas.py` — SQLAlchemy + Pydantic
+  - `app/diagnosis.py` — 7-rule crash diagnosis engine
+  - `app/routes/events.py` — `POST /events` generic logger
+  - `app/routes/flights.py` — `POST /flights/complete` (diagnose + log)
+  - `migrations/versions/0001_student_events.py` — Alembic migration
+  - `Dockerfile`, `requirements.txt`, `alembic.ini`, `README.md`
+- `web/src/api/client.ts` + `web/src/api/session.ts` — fetch wrapper + hardcoded student UUID, per-session UUID, attempt counter
+- `docker-compose.yml` — db + api services
 
 ## Conventions
 
