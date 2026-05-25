@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drone Simulator</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #87CEEB; /* Sky blue background as fallback */
+        }
+        body:fullscreen, body:-webkit-full-screen, body:-moz-full-screen {
+            cursor: none;
+        }
+        body:hover {
+            cursor: crosshair;
+        }
+        canvas {
+            display: block;
+        }
+        #error-display {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            color: red;
+            background: rgba(0,0,0,0.7);
+            padding: 10px;
+            font-family: monospace;
+            display: none;
+        }
+        #controls {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: Arial, sans-serif;
+        }
+        #timer {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: Arial, sans-serif;
+            font-size: 24px;
+        }
+        #mode-display {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: Arial, sans-serif;
+            font-size: 24px;
+        }
+        #crosshair {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
+        #crosshair::before,
+        #crosshair::after {
+            content: "";
+            position: absolute;
+            background: white;
+            border: 1px solid black;
+        }
+        #crosshair::before {
+            width: 2px;
+            height: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        #crosshair::after {
+            width: 20px;
+            height: 2px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+    </style>
+</head>
+<body>
+    <div id="error-display"></div>
+    <div id="crosshair"></div>
+    <div id="timer">Time: 0.0s</div>
+    <div id="mode-display">Normal Mode</div>
+    <div id="controls">
+        <h3>Controls:</h3>
+        <p>Press B to toggle Beginner Mode</p>
+        <p><strong>Normal Mode:</strong></p>
+        <p>W/S - Forward/Backward</p>
+        <p>A/D - Move Left/Right</p>
+        <p>Arrow Up/Down - Tilt</p>
+        <p><strong>Beginner Mode:</strong></p>
+        <p>Click screen to lock mouse</p>
+        <p>Mouse - Control Direction</p>
+        <p>W - Throttle</p>
+        <p>ESC - Release mouse</p>
+        <p>Space - Up</p>
+        <p>Shift - Down</p>
+    </div>
+    <script>
+        window.onerror = function(msg, url, line, col, error) {
+            const errorDisplay = document.getElementById('error-display');
+            errorDisplay.style.display = 'block';
+            errorDisplay.textContent = `Error: ${msg}\nLine: ${line}`;
+            console.error('Error:', error);
+            return false;
+        };
+    </script>
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.162.0/build/three.module.js"
+            }
+        }
+    </script>
+    <script type="module" src="/main.js"></script>
+</body>
+</html> 

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<title>Quad</title>
+<style>
+body  {
+    background: #444;
+    color:#AAA;
+    overflow:hidden;
+}
+* { margin:0px;}
+div.mess {font-size: 14px;margin-left: 14px;}
+div.messa {font-size: 10px;margin-left: 24px;}
+</style>
+</head>
+
+<body onunload="ws.close();">
+<center><h2>Quadcopter Simulator</h2></center>
+<hr>
+<div id='cv'  style="width:100%; height:600px; background: #EEE;">
+</div>
+<hr>
+<div id='title' class="mess">--</div>
+<div id='typ' class="mess">--</div>
+<div id='typ1' class="messa">--</div>
+<div id='typ2' class="messa">--</div>
+<div id='typ3' class="messa">--</div>
+<div id='typ4' class="messa">--</div>
+<div id='pos' class="mess">--</div>
+<div id='mes' class="mess">--</div>
+</body>
+<!-- ======================== Evenements Joystick ====================== -->
+<script src="js/gamepad.js"></script>
+<script src="js/3dutils.js"></script>
+<script src="js/3dgame.js"></script>
+<script src="js/Detector.js"></script>
+<script src="js/three.js"></script>
+<script src="js/TextGeometry.js"></script>
+<script src="js/FontUtils.js"></script>
+<script src="js/optimer_bold.typeface.js"></script>
+<script src="js/optimer_regular.typeface.js"></script>
+<script>
+// /(iPad|iPhone|iPod)/g.test( navigator.userAgent )
+
+function message(id) {
+ var node=document.getElementById(id)
+ var str="";
+ for (var i=1;i<arguments.length;i++) str+=arguments[i]+' ';
+ if (node) node.innerHTML=str;
+}
+
+// store gamepad events in buttons[] and mouseX/Y/Z/R
+
+var mouseX = 0, mouseY = 0, mouseZ = 0, mouseR=0 ;
+var posx=0,posy=20,posz=0, vx=0,vy=0, vz=0;
+var camera, scene;
+var webglRenderer;
+var modeCamera=true;
+var altitude=200;
+
+var ok=false;
+function eal(m,x) { 
+  var a=x/100.0;
+  var y=(a*a*a*a*a+a/2)*2.0
+  if (m!=0)message("typ"+m,"x=",x," a=",a,"y=",y," result=",y*100);
+  return y*100 ;
+}
+var buttons=[0,0,0,0,0,0,0,0,0,0,0,0];
+function doEvent(data) {
+  // standard axes dispositions : canonical device, the "Standard Gamepad"
+  // 0=>horzontal rotation,1=>updown 2=>left/right 3=>f/back (rc Mode 2)
+
+  var r=data[0][0]-100,
+     z=eal(1,data[0][1]-100),
+     y=eal(2,data[0][3]-100),
+     x=eal(3,data[0][2]-100);
+  buttons=data[1];
+  mouseX = x;
+  mouseY = y;   
+  mouseZ = z;
+  mouseR = r;
+  if ( buttons[0]==1) {  posx=0; posy=100; posz=0; }
+  if ( buttons[1]==1) {  vx=0; vy=0; vz=0;         }
+  if (buttons[6]==1) {
+    modeCamera=!modeCamera;
+    message("pos","Mode camera subgestive=",modeCamera);
+    //altitude=500;
+  }
+  if (buttons[7]==1) altitude -= 4;
+  if (buttons[8]==1) altitude += 4;
+  message("pos","Pos=",x,'/',y,'/',z,'R',r , "   events=",JSON.stringify(data));
+}
+
+
+
+
+document.addEventListener('DOMContentLoaded', init_game());
+
+
+</script>
+</html>
