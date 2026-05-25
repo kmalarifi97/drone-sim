@@ -246,3 +246,65 @@ button:disabled {
   color: #777;
   font-style: italic;
 }
+
+/* Mission result modal */
+.result-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+}
+
+.result-panel {
+  background: #1a1d24;
+  border: 1px solid #2e303a;
+  border-radius: 8px;
+  padding: 24px 32px;
+  min-width: 360px;
+  max-width: 480px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.55);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  align-items: stretch;
+}
+
+.result-outcome {
+  font-size: 22px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.result-outcome.success {
+  color: #6ec077;
+}
+
+.result-outcome.crashed {
+  color: #ff7a7a;
+}
+
+.result-reason {
+  text-align: center;
+  color: #ffb3b3;
+  font-size: 13px;
+}
+
+.result-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid #2e303a;
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-size: 12.5px;
+}
+
+.result-panel button {
+  align-self: stretch;
+  padding: 8px;
+  font-size: 13px;
+}

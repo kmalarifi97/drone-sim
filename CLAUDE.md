@@ -7,7 +7,8 @@ Educational drone-building app. Students pick real parts → assemble a drone �
 - **Prompt 1: ✅ Done.** Evaluated three candidate flight sims. None had real drone physics — all were arcade flyers with magic-number tuning constants. See *Eval summary* below.
 - **Prompt 2: ✅ Done.** `web/` builds clean (`tsc --noEmit` + `npm run build`), dev server serves at http://127.0.0.1:5173/. Flight scene with throttle slider, Small/Medium/Large config picker, telemetry overlay (altitude, vertical velocity, battery %, TWR, hover throttle %). Switching configs changes hover throttle from 31% (Small) → 36% (Medium) → 52% (Large), and acceleration scales accordingly.
 - **Prompt 3: ✅ Done.** Parts assembly playground at `src/assembly/`. 18 real parts (3 frames, 4 motors, 4 props, 3 ESCs, 4 batteries) in `src/parts/parts.json`. Three-panel UI: catalog tabs / 3D drone preview / live stats + validation + export. `buildToConfig()` produces `DroneConfig`; `validateBuild()` flags ESC overcurrent, voltage min/max, can't-hover, low TWR, prop-size mismatch. View toggle assembly↔flight via store. Smoke test: QAV-S 5" + F40 PRO IV 2400KV + HQProp 5x4.3x3 + BLHeli32 50A 4-in-1 + Tattu 4S 1300 + 0g payload → totalMass=460g, TWR=11.48.
-- **Prompts 4–5: ⬜ Pending.** Briefs below.
+- **Prompt 4: ✅ Done.** Delivery mission spec + 3-waypoint plan (climb → translate → descend over 2km, around 90m building at x=1000), PID waypoint follower with gravity feed-forward + per-axis accel clamp (`src/mission/autopilot.ts`), wind via relative-velocity drag, building collision AABB, mission state machine (`idle | in_progress | success | crashed`), result modal with telemetry (peak altitude, peak current, peak drift, final position, battery remaining). Smoke test: medium drone climbed to 101m in 20s, traversed to x=986m in 30s, completes full path ~80s.
+- **Prompt 5: ⬜ Pending.** Brief below.
 
 ## Architectural decisions
 
@@ -72,8 +73,8 @@ Vite+TS+R3F+Zustand app at `web/`. `DroneConfig` defined. `stepPhysics(state, co
 ### Prompt 3 — Parts assembly playground ✅ done
 React UI on top of Prompt 2. `parts.json` with real specs (T-Motor / Lumenier / Tattu, 18 parts). Three-panel layout: catalog tabs (left) / 3D drone preview (center) / live stats + validation + export (right). `buildToConfig()` → `DroneConfig`; `validateBuild()` returns non-blocking warn/error list. "Fly Mission" button calls `flyBuild()` → sets config and switches `view` to `'flight'`.
 
-### Prompt 4 — Delivery mission + autopilot ⬜
-Render mission in flight scene: warehouse `[0,0,0]`, customer `[2000,0,0]`, building obstacle `{position:[1000,0,0], height:90, width:40}`, wind `{direction:[-1,0,0], speed_ms:4}`, payload 200g, max 300s. PID waypoint-following autopilot (student doesn't fly manually). "Fly mission" button launches the sim with exported config + mission. Surface outcome (`success` or `crashed`) + telemetry (peak altitude, final position, battery state, peak current, peak drift). **Done when:** build → click fly → watch autopilot → see outcome with telemetry.
+### Prompt 4 — Delivery mission + autopilot ✅ done
+Mission at `src/mission/delivery.ts` (warehouse `[0,0,0]`, customer `[2000,0,0]`, 90m×40m building at x=1000, wind 4 m/s blowing -x, 200g payload, 300s limit). PID waypoint follower at `src/mission/autopilot.ts` (Kp=4 Ki=0.5 Kd=6, gravity feed-forward, per-axis accel clamp 8 m/s², uniform-scale thrust clamp). Mission state machine in store (`stepMission`, `cancelMission`, `MissionRuntime` with telemetry). Building collision AABB, battery <5% = crash, 300s = timeout. Result modal in `FlightView`.
 
 ### Prompt 5 — Diagnosis + event logging ⬜
 Add `server/` with FastAPI + SQLAlchemy + Alembic + Postgres + Docker Compose. Implement diagnosis ruleset against flight telemetry from Prompt 4:
@@ -113,7 +114,9 @@ Log every part selection, flight attempt, and diagnosis. Show student a human-re
   - `src/configs/testConfigs.ts` — Small/Medium/Large `DroneConfig` presets (used by FlightView)
   - `src/parts/parts.json` + `src/parts/types.ts` + `src/parts/catalog.ts` — parts data
   - `src/assembly/` — `AssemblyView`, `buildToConfig`, `validate`, `Build` type
-  - `src/flight/FlightView.tsx` — flight scene + telemetry overlay (Prompt 2 UI)
+  - `src/flight/FlightView.tsx` — flight scene + telemetry overlay; renders mission scene when active
+  - `src/mission/delivery.ts` — delivery mission spec + waypoint planner + building AABB
+  - `src/mission/autopilot.ts` — PID waypoint follower (point-mass, gravity feed-forward)
 - `candidates/` — vendored eval source (read-only reference)
 - `server/` — does not exist yet; appears in Prompt 5 alongside `docker-compose.yml`
 
